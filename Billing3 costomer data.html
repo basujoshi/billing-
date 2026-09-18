@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Customer Filter</title>
+
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f2f2f2;margin:0;padding:10px}
+.box{max-width:1300px;margin:auto;background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.15)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+label{display:block;font-weight:bold;margin:5px 0}
+input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px}
+button{padding:10px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
+.btn{background:#000;color:#fff}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{border:1px solid #000;padding:8px;text-align:center;font-weight:bold}
+th{background:#000;color:#fff}
+.card{margin-top:15px;border:1px solid #000;padding:10px;border-radius:8px}
+.small{font-size:12px}
+</style>
+</head>
+<body><div id="multiUserBar" style="position:fixed;bottom:12px;left:12px;z-index:99999;background:#111;color:#fff;padding:9px 12px;border-radius:10px;font:12px Arial;display:flex;gap:8px;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.25)">
+<span id="multiUserEmail">Loading user...</span>
+<button onclick="billingLogout()" style="border:0;border-radius:7px;padding:6px 9px;cursor:pointer">Logout</button>
+</div>
+<script>
+billingRunAfterAuth(function(user){ var el=document.getElementById("multiUserEmail"); if(el) el.textContent=user.email || "User"; });
+</script>
+
+<div class="box">
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label>Search Name / Number</label>
+        <input type="text" id="search" oninput="renderData()">
+      </div>
+      <div>
+        <label>Filter Day</label>
+        <input type="date" id="dayFilter" onchange="renderData()">
+      </div>
+      <div>
+        <label>Filter Month</label>
+        <input type="month" id="monthFilter" onchange="renderData()">
+      </div>
+      <div>
+        <label>Filter Year</label>
+        <input type="number" id="yearFilter" placeholder="2026" onchange="renderData()">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="small"><b>Total Customers:</b> <span id="count">0</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Customer Name</th>
+        <th>Customer Number</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="body"></tbody>
+  </table>
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-multiuser.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function() {
+  billingRunAfterAuth(function(user) {
+    const db = window.multiUserDb;
+
+
+
+
+
+let allCustomers = [];
+
+function loadCustomers(){
+  db.ref("customers").once("value").then(snap=>{
+    allCustomers = [];
+    snap.forEach(child=>{
+      const d = child.val() || {};
+      allCustomers.push({
+        customerName: d.customerName || "",
+        customerPhone: d.customerPhone || "",
+        date: d.date || ""
+      });
+    });
+    renderData();
+  });
+}
+
+function renderData(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const day = document.getElementById("dayFilter").value;
+  const month = document.getElementById("monthFilter").value;
+  const year = document.getElementById("yearFilter").value.trim();
+
+  const body = document.getElementById("body");
+  body.innerHTML = "";
+
+  const filtered = allCustomers.filter(d=>{
+    const name = String(d.customerName).toLowerCase();
+    const phone = String(d.customerPhone).toLowerCase();
+    const date = String(d.date || "");
+
+    const searchOk = !q || name.includes(q) || phone.includes(q);
+    const dayOk = !day || date === day;
+    const monthOk = !month || date.slice(0,7) === month;
+    const yearOk = !year || date.slice(0,4) === year;
+
+    return searchOk && dayOk && monthOk && yearOk;
+  });
+
+  document.getElementById("count").innerText = filtered.length;
+
+  filtered.forEach(d=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${d.customerName}</td>
+      <td>${d.customerPhone}</td>
+      <td>${d.date}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+loadCustomers();
+
+  });
+});
+</script>
+</body>
+</html>
