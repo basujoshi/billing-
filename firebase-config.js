@@ -1,10 +1,13 @@
-// firebase-config.js
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDb17q096myTddl7kYP9N5VXFHxC11wHA",
+  apiKey: "AIzaSyDb17q096my1Tddl7kYP9N5VXFHxC11wHA",
   authDomain: "billing-bd.firebaseapp.com",
   databaseURL: "https://billing-bd-default-rtdb.firebaseio.com",
   projectId: "billing-bd",
@@ -16,8 +19,4 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Realtime Database
-const db = getDatabase(app);
-
-export { app, db };
+const analytics = getAnalytics(app);
